@@ -29,7 +29,7 @@ namespace IslamicGame.Gameplay
             image = GetComponent<UnityEngine.UI.Image>();
             if (image != null)
                 originalColor = image.color;
-            originalScale = transform.localScale;
+            originalScale = Vector3.one;
         }
 
         public bool CanAcceptDrop(DraggableObject dragObject)

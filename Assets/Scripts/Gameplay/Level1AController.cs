@@ -11,11 +11,13 @@ namespace IslamicGame.Gameplay
 {
     public class Level1AController : MonoBehaviour
     {
-        
+
         [Header("Scene Panels")]
         public RectTransform scenesContainer; // Parent container for all scenes
         public List<GameObject> storyScenes = new List<GameObject>(); // All story panels
         public GameObject gameplayScene; // The actual game panel
+        public GameObject gameplayScene2;
+        public GameObject finalGameScene; // The final game panel
 
         [Header("Title Screen")]
         public GameObject titlePanel;
@@ -28,6 +30,7 @@ namespace IslamicGame.Gameplay
         public TextMeshProUGUI nextButtonText;
         public Button skipButton;
         public float slideTransitionDuration = 0.7f;
+        public int gameInterruptionIndex = 5;
         public Ease slideEase = Ease.OutQuart;
 
         [Header("Game Elements")]
@@ -135,12 +138,6 @@ namespace IslamicGame.Gameplay
 
         void ShowStoryScene(int index)
         {
-            if (index >= storyScenes.Count)
-            {
-                // Story complete, show game
-                ShowGameInstructions();
-                return;
-            }
             // Debug.Log($"Showing story scene {index}");
             GameObject scene = storyScenes[index];
             scene.SetActive(true);
@@ -172,7 +169,7 @@ namespace IslamicGame.Gameplay
                 TextMeshProUGUI[] texts = scene.GetComponentsInChildren<TextMeshProUGUI>();
                 foreach (var text in texts)
                 {
-                    if(text != nextButtonText)
+                    if (text != nextButtonText)
                         text.DOFade(0f, 0f);
                 }
             }
@@ -215,7 +212,24 @@ namespace IslamicGame.Gameplay
         {
             AudioManager.Instance.PlayUISound("button_click");
             currentSceneIndex++;
-            ShowStoryScene(currentSceneIndex);
+            if (currentSceneIndex == gameInterruptionIndex)
+            {
+                // Interrupt the game to show instructions
+                ShowGameInstructions();
+                return;
+            }
+            else if (currentSceneIndex >= storyScenes.Count + 1)
+            {
+                NextLevel(3);
+            }
+            else if (currentSceneIndex > gameInterruptionIndex)
+            {
+                ShowStoryScene(currentSceneIndex - 1);
+            }
+            else
+            {
+                ShowStoryScene(currentSceneIndex);
+            }
         }
 
         void SkipToGame()
@@ -306,6 +320,27 @@ namespace IslamicGame.Gameplay
             // Play narration audio for the current scene
             string narrationClip = $"narration_scene_{sceneIndex}";
             AudioManager.Instance.PlaySound(narrationClip);
+        }
+
+        public void NextLevel(int index)
+        {
+            if (index == 1)
+            {
+                gameplayScene.SetActive(false);
+                gameplayScene2.SetActive(true);
+                gameplayScene2.GetComponent<SpeechBubbleGame>().StartGame();
+            }
+            else if (index == 2)
+            {
+                gameplayScene2.SetActive(false);
+                GoToNextScene();
+            }
+            else if (index == 3)
+            {
+                // Show final game scene
+                finalGameScene.SetActive(true);
+                finalGameScene.GetComponent<SequenceOrderGame>().StartGame();
+            }
         }
     }
 }

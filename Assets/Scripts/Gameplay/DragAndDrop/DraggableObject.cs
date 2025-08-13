@@ -46,6 +46,12 @@ namespace IslamicGame.Gameplay
             originalParent = transform.parent;
         }
 
+        public void Initialize()
+        {
+            originalPosition = transform.localPosition;
+            originalScale = transform.localScale;
+        }
+
         public void Initialize(Vector3 startPosition, Vector3 startScale)
         {
             originalPosition = startPosition;
