@@ -333,7 +333,7 @@ namespace IslamicGame.Gameplay
             AudioManager.Instance.PlayUISound("button_click");
             if (levelController != null)
             {
-                levelController.NextLevel(2);
+                levelController.NextLevel(4);
             }
         }
     }

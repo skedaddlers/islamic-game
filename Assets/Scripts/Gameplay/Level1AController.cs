@@ -19,6 +19,7 @@ namespace IslamicGame.Gameplay
         public GameObject gameplayScene; // The actual game panel
         public GameObject gameplayScene2;
         public GameObject finalGameScene; // The final game panel
+        public GameObject winScene;
 
         [Header("Title Screen")]
         public GameObject titlePanel;
@@ -35,6 +36,7 @@ namespace IslamicGame.Gameplay
         public Ease slideEase = Ease.OutQuart;
 
         [Header("Game Elements")]
+        public Button restartButton;
         public GameObject gameInstructionPanel;
         public Button startGameButton;
 
@@ -89,6 +91,16 @@ namespace IslamicGame.Gameplay
             if (nextButton != null && storyScenes.Count > 0)
             {
                 nextButton.transform.SetParent(storyScenes[0].transform, false);
+            }
+
+            if(restartButton != null)
+            {
+                restartButton.onClick.RemoveAllListeners();
+                restartButton.onClick.AddListener(() =>
+                {
+                    AudioManager.Instance.PlayUISound("button_click");
+                    SceneManagerUtility.ReloadCurrentScene();
+                });
             }
 
         }
@@ -403,6 +415,13 @@ namespace IslamicGame.Gameplay
                 // Show final game scene
                 finalGameScene.SetActive(true);
                 finalGameScene.GetComponent<SequenceOrderGame>().StartGame();
+            }
+            else if (index == 4)
+            {
+                finalGameScene.transform.DOScale(0f, 0.5f).SetEase(Ease.OutBack)
+                    .OnComplete(() => finalGameScene.SetActive(false));
+
+                winScene.SetActive(true);
             }
         }
         
