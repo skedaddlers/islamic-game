@@ -195,7 +195,7 @@ namespace IslamicGame.Gameplay
             if (isGameComplete) return;
 
             attempts++;
-            AudioManager.Instance.PlayUISound("submit");
+            // AudioManager.Instance.PlayUISound("submit");
 
             // Check answers
             bool fatherCorrect = CheckDropZone(fatherDropZone, true, false);
@@ -400,6 +400,7 @@ namespace IslamicGame.Gameplay
 
         void OnNextLevelClicked()
         {
+            AudioManager.Instance.PlayUISound("button_click");
             if (levelController != null)
             {
                 levelController.NextLevel(1);

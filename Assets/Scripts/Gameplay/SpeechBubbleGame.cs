@@ -109,11 +109,11 @@ namespace IslamicGame.Gameplay
             }
 
             // animate dropzone on start
-            choiceDropZone.transform.localScale = Vector3.zero;
-            choiceDropZone.transform.DOScale(1f, 0.5f).SetEase(Ease.OutBack).OnComplete(() =>
-            {
-                choiceDropZone.transform.localScale = Vector3.one;
-            });
+            // choiceDropZone.transform.localScale = Vector3.zero;
+            // choiceDropZone.transform.DOScale(1f, 0.5f).SetEase(Ease.OutBack).OnComplete(() =>
+            // {
+            //     choiceDropZone.transform.localScale = Vector3.one;
+            // });
 
         }
 
@@ -144,7 +144,7 @@ namespace IslamicGame.Gameplay
             if (isGameComplete) return;
 
             attempts++;
-            AudioManager.Instance.PlayUISound("submit");
+            // AudioManager.Instance.PlayUISound("submit");
 
             // Check answers
             bool answerCorrect = CheckDropZone(currentImageOnDropZone);
@@ -320,6 +320,7 @@ namespace IslamicGame.Gameplay
 
         void OnNextLevelClicked()
         {
+            AudioManager.Instance.PlayUISound("button_click");
             if (levelController != null)
             {
                 levelController.NextLevel(2);

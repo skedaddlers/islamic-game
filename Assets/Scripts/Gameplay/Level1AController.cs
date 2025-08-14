@@ -15,6 +15,7 @@ namespace IslamicGame.Gameplay
         [Header("Scene Panels")]
         public RectTransform scenesContainer; // Parent container for all scenes
         public List<GameObject> storyScenes = new List<GameObject>(); // All story panels
+        public List<bool> useSequence = new List<bool>();
         public GameObject gameplayScene; // The actual game panel
         public GameObject gameplayScene2;
         public GameObject finalGameScene; // The final game panel
@@ -44,6 +45,8 @@ namespace IslamicGame.Gameplay
         {
             InitializeLevel();
             DisableAllTexts();
+
+            AddTweenToButtons();
         }
 
         void InitializeLevel()
@@ -90,6 +93,8 @@ namespace IslamicGame.Gameplay
 
         }
 
+
+
         void AnimateTitleScreen()
         {
             if (titleText != null)
@@ -107,13 +112,26 @@ namespace IslamicGame.Gameplay
                     .SetDelay(0.5f);
             }
 
+            Sequence seq = DOTween.Sequence();
+            for (int i = titlePanel.transform.childCount - 1; i >= 0; i--)
+            {
+                Transform child = titlePanel.transform.GetChild(i);
+                ForegroundAnimator animator = child.GetComponent<ForegroundAnimator>();
+                if (animator != null)
+                {
+                    seq.Append(animator.AnimateInTween());
+                }
+            }
+            seq.Play();
+
+
             // Animate clouds (if you have cloud objects)
             // AnimateClouds();
         }
 
         void OnPlayClicked()
         {
-            AudioManager.Instance.PlayUISound("button_click");
+            AudioManager.Instance.PlayUISound("game_start");
 
             // Stop play button animation
             playButton.transform.DOKill();
@@ -145,20 +163,33 @@ namespace IslamicGame.Gameplay
             nextButton.transform.SetParent(scene.transform, false);
 
             // Slide in from right
-            RectTransform sceneRect = scene.GetComponent<RectTransform>();
-            sceneRect.anchoredPosition = new Vector2(sceneWidth, 0);
-            sceneRect.DOAnchorPosX(0, slideTransitionDuration)
-                .SetEase(slideEase)
-                .OnComplete(() => AnimateSceneContent(scene));
+            // RectTransform sceneRect = scene.GetComponent<RectTransform>();
+            // sceneRect.anchoredPosition = new Vector2(sceneWidth, 0);
+            // sceneRect.DOAnchorPosX(0, slideTransitionDuration)
+            //     .SetEase(slideEase)
+            //     .OnComplete(() => AnimateSceneContent(scene));
+
+            // fade in current scene
+            if (index > gameInterruptionIndex)
+            {
+                scene.GetComponent<CanvasGroup>().DOFade(0f, 0f);
+                scene.GetComponent<CanvasGroup>().DOFade(1f, 0.5f);
+            }
+            AnimateSceneContent(scene);
 
             // Hide previous scene if exists
             if (index > 0)
             {
                 GameObject prevScene = storyScenes[index - 1];
-                RectTransform prevRect = prevScene.GetComponent<RectTransform>();
-                prevRect.DOAnchorPosX(-sceneWidth, slideTransitionDuration)
-                    .SetEase(slideEase)
-                    .OnComplete(() => prevScene.SetActive(false));
+                prevScene.SetActive(false);
+
+                if (index > gameInterruptionIndex)
+                {
+                    RectTransform prevRect = prevScene.GetComponent<RectTransform>();
+                    // fade out previous scene
+                    prevScene.GetComponent<CanvasGroup>().DOFade(0f, 0.5f)
+                        .OnComplete(() => prevScene.SetActive(false));
+                }
             }
         }
 
@@ -202,6 +233,38 @@ namespace IslamicGame.Gameplay
                         .SetEase(Ease.OutBack)
                         .SetDelay(0.3f);
                 }
+            }
+
+            // Slide in foreground
+            int checkScene = currentSceneIndex;
+            if (currentSceneIndex > gameInterruptionIndex)
+            {
+                checkScene--;
+            }
+            if (!useSequence[checkScene])
+            {
+                foreach (Transform child in scene.transform)
+                {
+                    ForegroundAnimator animator = child.GetComponent<ForegroundAnimator>();
+                    if (animator != null)
+                    {
+                        animator.AnimateIn();
+                    }
+                }
+            }
+            else
+            {
+                // Use sequence for foreground animations
+                Sequence seq = DOTween.Sequence();
+                foreach (Transform child in scene.transform)
+                {
+                    ForegroundAnimator animator = child.GetComponent<ForegroundAnimator>();
+                    if (animator != null)
+                    {
+                        seq.Append(animator.AnimateInTween());
+                    }
+                }
+                seq.Play();
             }
 
             // Play narration if available
@@ -342,5 +405,58 @@ namespace IslamicGame.Gameplay
                 finalGameScene.GetComponent<SequenceOrderGame>().StartGame();
             }
         }
+        
+        void AddTweenToButtons()
+        {
+            // Find all Button components in this scene (you can narrow this to specific parents if you want)
+            Button[] allButtons = FindObjectsOfType<Button>(true); // include inactive buttons
+
+            foreach (var btn in allButtons)
+            {
+                Transform btnTransform = btn.transform;
+
+                // Make sure starting scale is stored
+                Vector3 originalScale = btnTransform.localScale;
+
+                // Handle hover (requires EventTrigger or pointer events)
+                UnityEngine.EventSystems.EventTrigger trigger = btn.gameObject.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+                if (trigger == null)
+                {
+                    trigger = btn.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+                }
+
+                // Pointer Enter
+                UnityEngine.EventSystems.EventTrigger.Entry entryEnter = new UnityEngine.EventSystems.EventTrigger.Entry();
+                entryEnter.eventID = UnityEngine.EventSystems.EventTriggerType.PointerEnter;
+                entryEnter.callback.AddListener((eventData) =>
+                {
+                    btnTransform.DOKill(); // stop ongoing tweens
+                    btnTransform.DOScale(originalScale * 1.1f, 0.2f).SetEase(Ease.OutBack);
+                });
+                trigger.triggers.Add(entryEnter);
+
+                // Pointer Exit
+                UnityEngine.EventSystems.EventTrigger.Entry entryExit = new UnityEngine.EventSystems.EventTrigger.Entry();
+                entryExit.eventID = UnityEngine.EventSystems.EventTriggerType.PointerExit;
+                entryExit.callback.AddListener((eventData) =>
+                {
+                    btnTransform.DOKill();
+                    btnTransform.DOScale(originalScale, 0.2f).SetEase(Ease.OutBack);
+                });
+                trigger.triggers.Add(entryExit);
+
+                // On Click
+                btn.onClick.AddListener(() =>
+                {
+                    btnTransform.DOKill();
+                    btnTransform.DOScale(originalScale * 0.9f, 0.1f).SetEase(Ease.InOutSine)
+                        .OnComplete(() =>
+                        {
+                            btnTransform.DOScale(originalScale, 0.1f).SetEase(Ease.InOutSine);
+                        });
+                });
+            }
+        }
+
     }
 }

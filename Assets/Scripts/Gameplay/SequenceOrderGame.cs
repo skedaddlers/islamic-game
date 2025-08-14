@@ -55,6 +55,7 @@ namespace IslamicGame.Gameplay
             }
 
             // Setup drop zones
+            SetupChoices();
             SetupDropZones();
 
             // Setup submit button
@@ -85,6 +86,18 @@ namespace IslamicGame.Gameplay
             }
         }
 
+        void SetupChoices()
+        {
+            Sequence choiceSequence = DOTween.Sequence();
+            foreach (var option in choiceImages)
+            {
+                // option.Initialize();
+                // option.transform.localScale = Vector3.zero; // Start hidden
+                choiceSequence.Join(option.transform.DOScale(1f, 0.5f).SetEase(Ease.OutBack));
+            }
+            choiceSequence.Play();
+        }
+
         void SetupDropZones()
         {
 
@@ -94,11 +107,13 @@ namespace IslamicGame.Gameplay
             }
 
             // animate dropzone on start
+            Sequence dropZoneSequence = DOTween.Sequence();
             foreach (var dropZone in dropZones)
             {
                 dropZone.transform.localScale = Vector3.zero;
-                dropZone.transform.DOScale(1f, 0.5f).SetEase(Ease.OutBack);
+                dropZoneSequence.Join(dropZone.transform.DOScale(1f, 0.5f).SetEase(Ease.OutBack));
             }
+            dropZoneSequence.Play();
 
         }
 
@@ -138,7 +153,7 @@ namespace IslamicGame.Gameplay
             if (isGameComplete) return;
 
             attempts++;
-            AudioManager.Instance.PlayUISound("submit");
+            // AudioManager.Instance.PlayUISound("submit");
 
             // Check answers
             bool answerCorrect = CheckDropZone();
@@ -315,6 +330,7 @@ namespace IslamicGame.Gameplay
 
         void OnNextLevelClicked()
         {
+            AudioManager.Instance.PlayUISound("button_click");
             if (levelController != null)
             {
                 levelController.NextLevel(2);

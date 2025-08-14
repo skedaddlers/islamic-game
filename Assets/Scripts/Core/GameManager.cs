@@ -25,12 +25,13 @@ namespace IslamicGame.Core
         
         public delegate void OnGameStateChanged(GameState newState);
         public event OnGameStateChanged onGameStateChanged;
-        
+
         protected override void Awake()
         {
             base.Awake();
             InitializeDOTween();
             LoadPlayerProgress();
+            
         }
         
         void InitializeDOTween()

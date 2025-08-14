@@ -127,6 +127,7 @@ namespace IslamicGame.Gameplay
             {
                 if (dropZone != null && dropZone.CanAcceptDrop(this))
                 {
+                    AudioManager.Instance.PlaySound("drop");
                     // Successful drop
                     currentDropZone = dropZone;
                     dropZone.OnObjectDropped(this);

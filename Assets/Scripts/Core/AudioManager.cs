@@ -18,11 +18,12 @@ namespace IslamicGame.Core
         public List<Sound> sounds = new List<Sound>();
         
         private Dictionary<string, AudioClip> soundDictionary;
-        
+
         protected override void Awake()
         {
             base.Awake();
             InitializeSounds();
+            PlayMusic("background_music");
         }
         
         void InitializeSounds()
@@ -61,6 +62,7 @@ namespace IslamicGame.Core
             {
                 musicSource.clip = soundDictionary[musicName];
                 musicSource.Play();
+                musicSource.loop = true;
             }
         }
         
